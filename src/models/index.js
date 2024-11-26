@@ -28,9 +28,17 @@ const Inventory = require('./inventory')(sequelize);
 // Definisi relasi antar model
 User.belongsTo(Employee, { foreignKey: 'employee_id' });
 User.belongsTo(Role, { foreignKey: 'role_id' });
+
+// Relasi Payment
 Payment.belongsTo(Customer, { foreignKey: 'customer_id' });
 Payment.belongsTo(Employee, { foreignKey: 'employee_id' });
-Cart.belongsTo(Customer, { foreignKey: 'customer_id' });
+Payment.hasMany(Cart, { foreignKey: 'payment_id', as: 'carts' });
+
+// Relasi Cart
+Cart.belongsTo(Payment, { foreignKey: 'payment_id' });
+Cart.belongsTo(Inventory, { foreignKey: 'inventory_id' });
+
+// Relasi Salary
 Salary.belongsTo(Employee, { foreignKey: 'employee_id' });
 
 // Definisi soft delete untuk model yang memiliki kolom deleted

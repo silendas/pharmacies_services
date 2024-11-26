@@ -1,9 +1,14 @@
-const { Cart } = require('../models');
+const { Cart, Inventory, Payment } = require('../models');
 
 const cartController = {
   getAllCarts: async (req, res) => {
     try {
-      const carts = await Cart.findAll();
+      const carts = await Cart.findAll({
+        include: [{
+          model: Inventory,
+          attributes: ['id', 'name', 'price', 'stock']
+        }]
+      });
       res.json(carts);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -12,12 +17,34 @@ const cartController = {
 
   getCartById: async (req, res) => {
     try {
-      const cart = await Cart.findByPk(req.params.id);
+      const cart = await Cart.findByPk(req.params.id, {
+        include: [{
+          model: Inventory,
+          attributes: ['id', 'name', 'price', 'stock']
+        }]
+      });
       if (cart) {
         res.json(cart);
       } else {
-        res.status(404).json({ message: 'Cart not found' });
+        res.status(404).json({ message: 'Keranjang tidak ditemukan' });
       }
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  getCartsByPayment: async (req, res) => {
+    try {
+      const carts = await Cart.findAll({
+        where: {
+          payment_id: req.params.paymentId
+        },
+        include: [{
+          model: Inventory,
+          attributes: ['id', 'name', 'price', 'stock']
+        }]
+      });
+      res.json(carts);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

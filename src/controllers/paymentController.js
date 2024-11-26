@@ -1,4 +1,4 @@
-const { Payment, Employee, Customer } = require('../models');
+const { Payment, Employee, Customer, Cart, Inventory } = require('../models');
 
 const paymentController = {
   getAllPayments: async (req, res) => {
@@ -12,6 +12,14 @@ const paymentController = {
           {
             model: Customer,
             attributes: ['id', 'name', 'phone', 'address']
+          },
+          {
+            model: Cart,
+            as: 'carts',
+            include: [{
+              model: Inventory,
+              attributes: ['id', 'name', 'price', 'stock']
+            }]
           }
         ]
       });
@@ -32,6 +40,14 @@ const paymentController = {
           {
             model: Customer,
             attributes: ['id', 'name', 'phone', 'address']
+          },
+          {
+            model: Cart,
+            as: 'carts',
+            include: [{
+              model: Inventory,
+              attributes: ['id', 'name', 'price', 'stock']
+            }]
           }
         ]
       });

@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  async up(queryInterface, Sequelize) {
     const timestamp = new Date();
     await queryInterface.bulkInsert('roles', [
       {
@@ -19,14 +19,10 @@ module.exports = {
         created_at: timestamp,
         updated_at: timestamp
       }
-    ], {});
+    ]);
   },
 
-  down: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkDelete('roles', {
-      name: {
-        [Sequelize.Op.in]: ['administrator', 'kasir', 'apoteker']
-      }
-    }, {});
+  async down(queryInterface, Sequelize) {
+    await queryInterface.bulkDelete('roles', null, {});
   }
 };

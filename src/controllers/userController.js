@@ -87,19 +87,19 @@ const userController = {
 
   login: async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const { username, password } = req.body;
       
-      const user = await User.findOne({ where: { email } });
+      const user = await User.findOne({ where: { username } });
       if (!user) {
         return res.status(401).json({ 
-          message: 'Email atau password salah' 
+          message: 'Username atau password salah' 
         });
       }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         return res.status(401).json({ 
-          message: 'Email atau password salah' 
+          message: 'Username atau password salah' 
         });
       }
 
@@ -109,7 +109,7 @@ const userController = {
         message: 'Login berhasil',
         user: {
           id: user.id,
-          email: user.email
+          username: user.username
         },
         token
       });

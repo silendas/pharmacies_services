@@ -1,9 +1,16 @@
-const { Salary } = require('../models');
+const { Salary, Employee } = require('../models');
 
 const salaryController = {
   getAllSalaries: async (req, res) => {
     try {
-      const salaries = await Salary.findAll();
+      const salaries = await Salary.findAll({
+        include: [
+          {
+            model: Employee,
+            attributes: ['id', 'name', 'phone', 'address']
+          }
+        ]
+      });
       res.json(salaries);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -12,11 +19,18 @@ const salaryController = {
 
   getSalaryById: async (req, res) => {
     try {
-      const salary = await Salary.findByPk(req.params.id);
+      const salary = await Salary.findByPk(req.params.id, {
+        include: [
+          {
+            model: Employee,
+            attributes: ['id', 'name', 'phone', 'address']
+          }
+        ]
+      });
       if (salary) {
         res.json(salary);
       } else {
-        res.status(404).json({ message: 'Salary not found' });
+        res.status(404).json({ message: 'Gaji tidak ditemukan' });
       }
     } catch (error) {
       res.status(500).json({ message: error.message });

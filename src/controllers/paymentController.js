@@ -1,9 +1,20 @@
-const { Payment } = require('../models');
+const { Payment, Employee, Customer } = require('../models');
 
 const paymentController = {
   getAllPayments: async (req, res) => {
     try {
-      const payments = await Payment.findAll();
+      const payments = await Payment.findAll({
+        include: [
+          {
+            model: Employee,
+            attributes: ['id', 'name', 'phone', 'address']
+          },
+          {
+            model: Customer,
+            attributes: ['id', 'name', 'phone', 'address']
+          }
+        ]
+      });
       res.json(payments);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -12,11 +23,22 @@ const paymentController = {
 
   getPaymentById: async (req, res) => {
     try {
-      const payment = await Payment.findByPk(req.params.id);
+      const payment = await Payment.findByPk(req.params.id, {
+        include: [
+          {
+            model: Employee,
+            attributes: ['id', 'name', 'phone', 'address']
+          },
+          {
+            model: Customer,
+            attributes: ['id', 'name', 'phone', 'address']
+          }
+        ]
+      });
       if (payment) {
         res.json(payment);
       } else {
-        res.status(404).json({ message: 'Payment not found' });
+        res.status(404).json({ message: 'Pembayaran tidak ditemukan' });
       }
     } catch (error) {
       res.status(500).json({ message: error.message });

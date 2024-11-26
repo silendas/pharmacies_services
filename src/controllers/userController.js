@@ -1,10 +1,22 @@
-const { User } = require('../models');
+const { User, Employee, Role } = require('../models');
 const bcrypt = require('bcryptjs');
 
 const userController = {
   getAllUsers: async (req, res) => {
     try {
-      const users = await User.findAll();
+      const users = await User.findAll({
+        include: [
+          {
+            model: Employee,
+            attributes: ['id', 'name', 'phone', 'address']
+          },
+          {
+            model: Role,
+            attributes: ['id', 'name']
+          }
+        ],
+        attributes: { exclude: ['password'] }
+      });
       res.json(users);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -13,11 +25,23 @@ const userController = {
 
   getUserById: async (req, res) => {
     try {
-      const user = await User.findByPk(req.params.id);
+      const user = await User.findByPk(req.params.id, {
+        include: [
+          {
+            model: Employee,
+            attributes: ['id', 'name', 'phone', 'address']
+          },
+          {
+            model: Role,
+            attributes: ['id', 'name']
+          }
+        ],
+        attributes: { exclude: ['password'] }
+      });
       if (user) {
         res.json(user);
       } else {
-        res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: 'Pengguna tidak ditemukan' });
       }
     } catch (error) {
       res.status(500).json({ message: error.message });

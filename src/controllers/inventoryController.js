@@ -1,73 +1,64 @@
 const { Inventory } = require('../models');
 
-// Controller untuk Inventory
 const inventoryController = {
-  // Mendapatkan semua data inventory
-  async getAll(req, res) {
+  getAllInventories: async (req, res) => {
     try {
       const inventories = await Inventory.findAll();
-      res.status(200).json(inventories);
+      res.json(inventories);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch inventories' });
+      res.status(500).json({ message: error.message });
     }
   },
 
-  // Mendapatkan inventory berdasarkan ID
-  async getById(req, res) {
+  getInventoryById: async (req, res) => {
     try {
       const inventory = await Inventory.findByPk(req.params.id);
-      if (!inventory) {
-        return res.status(404).json({ error: 'Inventory not found' });
+      if (inventory) {
+        res.json(inventory);
+      } else {
+        res.status(404).json({ message: 'Inventory not found' });
       }
-      res.status(200).json(inventory);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch inventory' });
+      res.status(500).json({ message: error.message });
     }
   },
 
-  // Menambahkan inventory baru
-  async create(req, res) {
+  createInventory: async (req, res) => {
     try {
-      const { name, description, stock, price } = req.body;
-      const newInventory = await Inventory.create({ name, description, stock, price });
-      res.status(201).json(newInventory);
+      const inventory = await Inventory.create(req.body);
+      res.status(201).json(inventory);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to create inventory' });
+      res.status(400).json({ message: error.message });
     }
   },
 
-  // Memperbarui inventory berdasarkan ID
-  async update(req, res) {
-    try {
-      const { name, description, stock, price } = req.body;
-      const inventory = await Inventory.findByPk(req.params.id);
-      if (!inventory) {
-        return res.status(404).json({ error: 'Inventory not found' });
-      }
-      inventory.name = name || inventory.name;
-      inventory.description = description || inventory.description;
-      inventory.stock = stock || inventory.stock;
-      inventory.price = price || inventory.price;
-      await inventory.save();
-      res.status(200).json(inventory);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to update inventory' });
-    }
-  },
-
-  // Menghapus inventory berdasarkan ID
-  async delete(req, res) {
+  updateInventory: async (req, res) => {
     try {
       const inventory = await Inventory.findByPk(req.params.id);
-      if (!inventory) {
-        return res.status(404).json({ error: 'Inventory not found' });
+      if (inventory) {
+        await inventory.update(req.body);
+        res.json(inventory);
+      } else {
+        res.status(404).json({ message: 'Inventory not found' });
       }
-      await inventory.destroy();
-      res.status(200).json({ message: 'Inventory deleted successfully' });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to delete inventory' });
+      res.status(400).json({ message: error.message });
     }
   },
+
+  deleteInventory: async (req, res) => {
+    try {
+      const inventory = await Inventory.findByPk(req.params.id);
+      if (inventory) {
+        await inventory.destroy();
+        res.json({ message: 'Inventory deleted' });
+      } else {
+        res.status(404).json({ message: 'Inventory not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
 };
 
 module.exports = inventoryController;

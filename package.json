@@ -10,9 +10,9 @@
     "seed:prod": "npx sequelize-cli db:seed:all --env production",
     "migrate:undo": "npx sequelize-cli db:migrate:undo",
     "migrate:undo:all": "npx sequelize-cli db:migrate:undo:all",
-    "start": "node src/app.js",
-    "dev": "cross-env NODE_ENV=development node src/app.js",
-    "prod": "cross-env NODE_ENV=production node src/app.js",
+    "start": "cross-env NODE_ENV=production node server.js",
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
+    "prod": "cross-env NODE_ENV=production node server.js",
     "update-config": "node scripts/updateConfig.js"
   },
   "keywords": [],
@@ -30,6 +30,7 @@
     "sequelize-cli": "^6.6.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "cross-env": "^7.0.3",
+    "nodemon": "^2.0.15"
   }
 }

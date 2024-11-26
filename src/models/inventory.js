@@ -8,33 +8,24 @@ module.exports = (sequelize) => {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true,
+        autoIncrement: true
       },
       name: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
       },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: true,
+      price: {
+        type: DataTypes.STRING,
+        allowNull: false
       },
       stock: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0,
+        allowNull: false
       },
-      price: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
+      deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+      }
     },
     {
       sequelize,
@@ -42,8 +33,8 @@ module.exports = (sequelize) => {
       tableName: 'inventories',
       timestamps: true,
       createdAt: 'created_at',
-      updatedAt: 'updated_at',
+      updatedAt: 'updated_at'
     }
   );
   return Inventory;
-};
+}; 

@@ -1,69 +1,64 @@
 const { Cart } = require('../models');
 
 const cartController = {
-  // Mendapatkan semua data cart
-  async getAll(req, res) {
+  getAllCarts: async (req, res) => {
     try {
       const carts = await Cart.findAll();
-      res.status(200).json(carts);
+      res.json(carts);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch carts' });
+      res.status(500).json({ message: error.message });
     }
   },
 
-  // Mendapatkan cart berdasarkan ID
-  async getById(req, res) {
+  getCartById: async (req, res) => {
     try {
       const cart = await Cart.findByPk(req.params.id);
-      if (!cart) {
-        return res.status(404).json({ error: 'Cart not found' });
+      if (cart) {
+        res.json(cart);
+      } else {
+        res.status(404).json({ message: 'Cart not found' });
       }
-      res.status(200).json(cart);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch cart' });
+      res.status(500).json({ message: error.message });
     }
   },
 
-  // Menambahkan item ke cart
-  async create(req, res) {
+  createCart: async (req, res) => {
     try {
-      const { customer_id, inventory_id, quantity } = req.body;
-      const newCart = await Cart.create({ customer_id, inventory_id, quantity });
-      res.status(201).json(newCart);
+      const cart = await Cart.create(req.body);
+      res.status(201).json(cart);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to add item to cart' });
+      res.status(400).json({ message: error.message });
     }
   },
 
-  // Memperbarui item dalam cart
-  async update(req, res) {
-    try {
-      const { quantity } = req.body;
-      const cart = await Cart.findByPk(req.params.id);
-      if (!cart) {
-        return res.status(404).json({ error: 'Cart not found' });
-      }
-      cart.quantity = quantity || cart.quantity;
-      await cart.save();
-      res.status(200).json(cart);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to update cart' });
-    }
-  },
-
-  // Menghapus item dari cart
-  async delete(req, res) {
+  updateCart: async (req, res) => {
     try {
       const cart = await Cart.findByPk(req.params.id);
-      if (!cart) {
-        return res.status(404).json({ error: 'Cart not found' });
+      if (cart) {
+        await cart.update(req.body);
+        res.json(cart);
+      } else {
+        res.status(404).json({ message: 'Cart not found' });
       }
-      await cart.destroy();
-      res.status(200).json({ message: 'Cart item deleted successfully' });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to delete cart item' });
+      res.status(400).json({ message: error.message });
     }
   },
+
+  deleteCart: async (req, res) => {
+    try {
+      const cart = await Cart.findByPk(req.params.id);
+      if (cart) {
+        await cart.destroy();
+        res.json({ message: 'Cart deleted' });
+      } else {
+        res.status(404).json({ message: 'Cart not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
 };
 
 module.exports = cartController;

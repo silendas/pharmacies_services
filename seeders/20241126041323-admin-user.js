@@ -3,13 +3,15 @@ const bcrypt = require('bcryptjs');
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
+    const timestamp = new Date();
+
     // Pertama, buat employee untuk admin
     const [employee] = await queryInterface.bulkInsert('employees', [{
       name: 'Administrator',
       phone: '081234567890',
       address: 'Alamat Administrator',
-      created_at: new Date(),
-      updated_at: new Date()
+      created_at: timestamp,
+      updated_at: timestamp
     }], { returning: true });
 
     // Dapatkan ID role administrator
@@ -25,14 +27,20 @@ module.exports = {
       role_id: adminRoleId,
       username: 'admin',
       password: await bcrypt.hash('admin123', 8),
-      email: 'admin@pharmacy.com',
-      created_at: new Date(),
-      updated_at: new Date()
+      created_at: timestamp,
+      updated_at: timestamp
     }], {});
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkDelete('users', { username: 'admin' }, {});
-    await queryInterface.bulkDelete('employees', { name: 'Administrator' }, {});
+    // Hapus user admin
+    await queryInterface.bulkDelete('users', { 
+      username: 'admin' 
+    }, {});
+    
+    // Hapus employee admin
+    await queryInterface.bulkDelete('employees', { 
+      name: 'Administrator' 
+    }, {});
   }
 };

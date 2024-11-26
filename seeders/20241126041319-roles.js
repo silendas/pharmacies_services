@@ -2,26 +2,31 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
+    const timestamp = new Date();
     await queryInterface.bulkInsert('roles', [
       {
         name: 'administrator',
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: timestamp,
+        updated_at: timestamp
       },
       {
         name: 'kasir',
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: timestamp,
+        updated_at: timestamp
       },
       {
         name: 'apoteker',
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: timestamp,
+        updated_at: timestamp
       }
     ], {});
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkDelete('roles', null, {});
+    await queryInterface.bulkDelete('roles', {
+      name: {
+        [Sequelize.Op.in]: ['administrator', 'kasir', 'apoteker']
+      }
+    }, {});
   }
 };

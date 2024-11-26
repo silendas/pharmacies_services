@@ -1,5 +1,7 @@
 'use strict';
 const { Model, DataTypes } = require('sequelize');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 module.exports = (sequelize) => {
   class User extends Model {}
@@ -35,6 +37,14 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: true
+        }
+      }
     },
     {
       sequelize,
@@ -45,5 +55,22 @@ module.exports = (sequelize) => {
       updatedAt: 'updated_at',
     }
   );
+
+  // Hash password sebelum save
+  User.beforeCreate(async (user) => {
+    if (user.password) {
+      user.password = await bcrypt.hash(user.password, 8);
+    }
+  });
+
+  // Method untuk generate token
+  User.prototype.generateToken = function() {
+    return jwt.sign(
+      { id: this.id, email: this.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+  };
+
   return User;
 };

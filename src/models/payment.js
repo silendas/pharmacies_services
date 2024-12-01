@@ -24,10 +24,6 @@ module.exports = (sequelize) => {
           key: 'id',
         },
       },
-      total_price: {
-        type: DataTypes.STRING,
-        allowNull: false
-      },
       date: {
         type: DataTypes.DATE,
         allowNull: false

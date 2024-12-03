@@ -8,7 +8,7 @@ const paymentController = {
         include: [
           {
             model: Employee,
-            attributes: ["id", "name", "phone", "address"],
+            attributes: ["id", "name", "phone"],
           },
           {
             model: Customer,
@@ -16,15 +16,18 @@ const paymentController = {
           },
           {
             model: Cart,
+            as: "carts", // Tambahkan alias sesuai definisi di model
             include: [
               {
                 model: Inventory,
                 attributes: ["id", "name", "price", "stock"],
+                
               },
             ],
+            attributes: ['id', 'qty', [sequelize.literal('qty * Inventory.price'), 'total_price']],
           },
         ],
-      });
+      });      
       res.json(payments);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -37,7 +40,7 @@ const paymentController = {
         include: [
           {
             model: Employee,
-            attributes: ["id", "name", "phone", "address"],
+            attributes: ["id", "name", "phone"],
           },
           {
             model: Customer,
@@ -45,6 +48,7 @@ const paymentController = {
           },
           {
             model: Cart,
+            as: "carts", // Tambahkan alias sesuai definisi di model
             include: [
               {
                 model: Inventory,
@@ -53,7 +57,7 @@ const paymentController = {
             ],
           },
         ],
-      });
+      });      
       if (payment) {
         res.json(payment);
       } else {

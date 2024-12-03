@@ -16,6 +16,7 @@ module.exports = (sequelize) => {
           model: 'customers',
           key: 'id',
         },
+        allowNull: true,
       },
       employee_id: {
         type: DataTypes.INTEGER,

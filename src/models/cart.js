@@ -1,42 +1,43 @@
 'use strict';
 const { Model, DataTypes } = require('sequelize');
 
-module.exports = (sequelize) => {
-  class Cart extends Model {}
-  Cart.init(
+module.exports = (sequelize, DataTypes) => {
+  const Cart = sequelize.define(
+    'Cart',
     {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
       },
-      payment_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'payments',
-          key: 'id',
-        },
-      },
       inventory_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: {
-          model: 'inventories',
-          key: 'id',
-        },
       },
       qty: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      // Virtual field untuk total_price
+      total_price: {
+        type: DataTypes.VIRTUAL,
+        get() {
+          return this.getDataValue('qty') * this.Inventory.price;
+        },
+      },
     },
     {
-      sequelize,
-      modelName: 'Cart',
       tableName: 'carts',
-      timestamps: false,
+      timestamps: true,
     }
   );
+
+  Cart.associate = (models) => {
+    Cart.belongsTo(models.Inventory, {
+      foreignKey: 'inventory_id',
+      as: 'Inventory',
+    });
+  };
+
   return Cart;
-}; 
+};

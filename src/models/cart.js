@@ -30,7 +30,7 @@ module.exports = (sequelize) => {
     },
     {
       tableName: 'carts',
-      timestamps: true,
+      timestamps: false,
     }
   );
 

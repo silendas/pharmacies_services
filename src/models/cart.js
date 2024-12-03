@@ -1,7 +1,7 @@
 'use strict';
 const { Model, DataTypes } = require('sequelize');
 
-module.exports = (sequelize, DataTypes) => {
+module.exports = (sequelize) => {
   const Cart = sequelize.define(
     'Cart',
     {
@@ -22,7 +22,9 @@ module.exports = (sequelize, DataTypes) => {
       total_price: {
         type: DataTypes.VIRTUAL,
         get() {
-          return this.getDataValue('qty') * this.Inventory.price;
+          const qty = this.getDataValue('qty');
+          const inventoryPrice = this.Inventory?.price || 0; // Cek nullish Inventory
+          return qty * inventoryPrice;
         },
       },
     },

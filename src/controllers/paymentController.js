@@ -16,15 +16,15 @@ const paymentController = {
           },
           {
             model: Cart,
-            as: "carts", // Tambahkan alias sesuai definisi di model
+            as: "carts", // Alias untuk Cart
             include: [
               {
                 model: Inventory,
+                as: 'Inventory', // Tambahkan alias di sini
                 attributes: ["id", "name", "price", "stock"],
-                
               },
             ],
-            attributes: ['id', 'qty', [sequelize.literal('qty * Inventory.price'), 'total_price']],
+            attributes: ['id', 'qty', [sequelize.literal('qty * `carts->Inventory`.`price`'), 'total_price']],
           },
         ],
       });      

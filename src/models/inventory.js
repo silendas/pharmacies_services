@@ -10,6 +10,10 @@ module.exports = (sequelize) => {
         primaryKey: true,
         autoIncrement: true
       },
+      kode: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
       name: {
         type: DataTypes.STRING,
         allowNull: false

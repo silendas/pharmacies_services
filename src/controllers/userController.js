@@ -99,7 +99,7 @@ const userController = {
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         return res.status(401).json({ 
-          message: 'Username atau password salah' 
+          message: 'password salah' 
         });
       }
 

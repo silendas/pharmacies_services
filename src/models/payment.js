@@ -1,9 +1,9 @@
 'use strict';
-const { Model, DataTypes } = require('sequelize');
+const { Model, DataTypes, Sequelize } = require('sequelize');
 
 module.exports = (sequelize) => {
-  class Payment extends Model {}
-  Payment.init(
+  const Payment = sequelize.define(
+    'Payment',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -27,7 +27,20 @@ module.exports = (sequelize) => {
       },
       date: {
         type: DataTypes.DATE,
-        allowNull: false
+        allowNull: false,
+      },
+      total_price: {
+        type: DataTypes.VIRTUAL,
+        get() {
+          if (this.Carts) {
+            return this.Carts.reduce(
+              (total, cart) =>
+                total + (cart.qty * (cart.Inventory?.price || 0)),
+              0
+            );
+          }
+          return 0;
+        },
       },
     },
     {
@@ -39,5 +52,12 @@ module.exports = (sequelize) => {
       updatedAt: 'updated_at',
     }
   );
+
+  Payment.associate = (models) => {
+    Payment.belongsTo(models.Customer, { foreignKey: 'customer_id', as: 'Customer' });
+    Payment.belongsTo(models.Employee, { foreignKey: 'employee_id', as: 'Employee' });
+    Payment.hasMany(models.Cart, { foreignKey: 'payment_id', as: 'Carts' });
+  };
+
   return Payment;
 };

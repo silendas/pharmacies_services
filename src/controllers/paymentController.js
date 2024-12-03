@@ -16,18 +16,35 @@ const paymentController = {
           },
           {
             model: Cart,
-            as: "carts", // Alias untuk Cart
+            as: "carts",
             include: [
               {
                 model: Inventory,
-                as: 'Inventory', // Tambahkan alias di sini
+                as: 'Inventory',
                 attributes: ["id", "name", "price", "stock"],
               },
             ],
-            attributes: ['id', 'qty', [sequelize.literal('qty * `carts->Inventory`.`price`'), 'total_price']],
+            attributes: [
+              'id',
+              'qty',
+              [sequelize.literal('qty * `carts->Inventory`.`price`'), 'total_price'],
+            ],
           },
         ],
-      });      
+        attributes: {
+          include: [
+            [
+              sequelize.literal(`(
+                SELECT SUM(qty * Inventory.price)
+                FROM Carts
+                INNER JOIN Inventories AS Inventory ON Carts.inventory_id = Inventory.id
+                WHERE Carts.payment_id = Payment.id
+              )`),
+              'total_price',
+            ],
+          ],
+        },
+      });
       res.json(payments);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -48,16 +65,35 @@ const paymentController = {
           },
           {
             model: Cart,
-            as: "carts", // Tambahkan alias sesuai definisi di model
+            as: "carts",
             include: [
               {
                 model: Inventory,
                 attributes: ["id", "name", "price", "stock"],
               },
             ],
+            attributes: [
+              'id',
+              'qty',
+              [sequelize.literal('qty * `carts->Inventory`.`price`'), 'total_price'],
+            ],
           },
         ],
-      });      
+        attributes: {
+          include: [
+            [
+              sequelize.literal(`(
+                SELECT SUM(qty * Inventory.price)
+                FROM Carts
+                INNER JOIN Inventories AS Inventory ON Carts.inventory_id = Inventory.id
+                WHERE Carts.payment_id = Payment.id
+              )`),
+              'total_price',
+            ],
+          ],
+        },
+      });
+
       if (payment) {
         res.json(payment);
       } else {

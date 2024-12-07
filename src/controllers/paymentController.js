@@ -1,7 +1,7 @@
-const { Payment, Employee, Customer, Cart, Inventory } = require("../models");
-const { sequelize } = require("../models");
+const { Payment, Employee, Customer, Cart, Inventory, sequelize } = require('../models');
 
-const paymentController = {
+module.exports = {
+  // Endpoint untuk mendapatkan semua pembayaran
   getAllPayments: async (req, res) => {
     try {
       const payments = await Payment.findAll({
@@ -20,37 +20,51 @@ const paymentController = {
             include: [
               {
                 model: Inventory,
-                as: 'Inventory',
-                attributes: ["id", "name", "price", "stock"],
+                as: "Inventory",
+                attributes: ["id", "kode", "name", "price", "stock"],
               },
             ],
             attributes: [
-              'id',
-              'qty',
-              [sequelize.literal('qty * `carts->Inventory`.`price`'), 'total_price'],
+              "id",
+              "qty",
+              [sequelize.literal("qty * `carts->Inventory`.`price`"), "total_price"],
             ],
           },
         ],
         attributes: {
           include: [
+            ["id", "transaction_id"],
             [
-              sequelize.literal(`(
-                SELECT SUM(qty * Inventory.price)
-                FROM Carts
-                INNER JOIN Inventories AS Inventory ON Carts.inventory_id = Inventory.id
-                WHERE Carts.payment_id = Payment.id
-              )`),
-              'total_price',
+              sequelize.literal(`CONCAT('S-', LPAD(Payment.id, 5, '0'))`),
+              "receipt_code",
             ],
           ],
         },
       });
-      res.json(payments);
+
+      if (!payments) {
+        return res.status(404).json({ message: "Pembayaran tidak ditemukan." });
+      }
+
+      const paymentsWithTotalPrice = payments.map((payment) => {
+        const carts = payment.carts || [];
+        const totalPrice = carts.reduce((sum, cart) => {
+          return sum + cart.qty * (cart.Inventory?.price || 0);
+        }, 0);
+
+        return {
+          ...payment.toJSON(),
+          total_price: totalPrice,
+        };
+      });
+
+      res.json(paymentsWithTotalPrice);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   },
 
+  // Endpoint untuk mendapatkan pembayaran berdasarkan ID
   getPaymentById: async (req, res) => {
     try {
       const payment = await Payment.findByPk(req.params.id, {
@@ -69,172 +83,133 @@ const paymentController = {
             include: [
               {
                 model: Inventory,
-                attributes: ["id", "name", "price", "stock"],
+                as: "Inventory",
+                attributes: ["id", "kode", "name", "price", "stock"],
               },
             ],
             attributes: [
-              'id',
-              'qty',
-              [sequelize.literal('qty * `carts->Inventory`.`price`'), 'total_price'],
+              "id",
+              "qty",
+              [sequelize.literal("qty * `carts->Inventory`.`price`"), "total_price"],
             ],
           },
         ],
         attributes: {
           include: [
+            ["id", "transaction_id"],
             [
-              sequelize.literal(`(
-                SELECT SUM(qty * Inventory.price)
-                FROM Carts
-                INNER JOIN Inventories AS Inventory ON Carts.inventory_id = Inventory.id
-                WHERE Carts.payment_id = Payment.id
-              )`),
-              'total_price',
+              sequelize.literal(`CONCAT('S-', LPAD(Payment.id, 5, '0'))`),
+              "receipt_code",
             ],
           ],
         },
       });
 
-      if (payment) {
-        res.json(payment);
-      } else {
-        res.status(404).json({ message: "Pembayaran tidak ditemukan" });
+      if (!payment) {
+        return res.status(404).json({ message: "Pembayaran tidak ditemukan." });
       }
+
+      const carts = payment.carts || [];
+      const totalPrice = carts.reduce((sum, cart) => {
+        return sum + cart.qty * (cart.Inventory?.price || 0);
+      }, 0);
+
+      res.json({ ...payment.toJSON(), total_price: totalPrice });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   },
 
-  createPayment: async (req, res) => {
-    const transaction = await sequelize.transaction();
-    try {
-      const { customer_id, employee_id, date, carts } = req.body;
+  // Endpoint untuk membuat pembayaran baru
+  // Endpoint untuk membuat pembayaran baru
+createPayment: async (req, res) => {
+  try {
+    const { customer_id, employee_id, date, carts } = req.body;
+    const newPayment = await Payment.create({
+      customer_id,
+      employee_id,
+      date,
+    });
 
-      // Create Payment
-      const payment = await Payment.create(
-        { customer_id, employee_id, date },
-        { transaction }
-      );
-
-      // Process Cart
-      for (const cartItem of carts) {
-        const { kode, qty } = cartItem;
-
-        // Get Inventory by Kode
-        const inventory = await Inventory.findOne({
-          where: { kode },
-          transaction,
-        });
-        if (!inventory || inventory.stock < qty) {
-          throw new Error(`Stok tidak cukup untuk item dengan kode ${kode}`);
-        }
-
-        // Deduct Inventory Stock
-        await inventory.update(
-          { stock: inventory.stock - qty },
-          { transaction }
-        );
-
-        // Create Cart Entry
-        await Cart.create(
-          { payment_id: payment.id, inventory_id: inventory.id, qty },
-          { transaction }
-        );
-      }
-
-      await transaction.commit();
-      res.status(201).json(payment);
-    } catch (error) {
-      await transaction.rollback();
-      res.status(400).json({ message: error.message });
-    }
-  },
-
-  updatePayment: async (req, res) => {
-    const transaction = await sequelize.transaction();
-    try {
-      const payment = await Payment.findByPk(req.params.id, { transaction });
-      if (!payment) {
-        return res.status(404).json({ message: "Payment not found" });
-      }
-
-      const { customer_id, employee_id, date, carts } = req.body;
-
-      // Update Payment
-      await payment.update({ customer_id, employee_id, date }, { transaction });
-
-      // Clear existing carts for this payment
-      await Cart.destroy({ where: { payment_id: payment.id }, transaction });
-
-      // Process new carts
-      for (const cartItem of carts) {
-        const { kode, qty } = cartItem;
-
-        // Get Inventory by Kode
-        const inventory = await Inventory.findOne({
-          where: { kode },
-          transaction,
-        });
-        if (!inventory || inventory.stock < qty) {
-          throw new Error(`Stok tidak cukup untuk item dengan kode ${kode}`);
-        }
-
-        // Deduct Inventory Stock
-        await inventory.update(
-          { stock: inventory.stock - qty },
-          { transaction }
-        );
-
-        // Create Cart Entry
-        await Cart.create(
-          { payment_id: payment.id, inventory_id: inventory.id, qty },
-          { transaction }
-        );
-      }
-
-      await transaction.commit();
-      res.json(payment);
-    } catch (error) {
-      await transaction.rollback();
-      res.status(400).json({ message: error.message });
-    }
-  },
-
-  deletePayment: async (req, res) => {
-    const transaction = await sequelize.transaction();
-    try {
-      const payment = await Payment.findByPk(req.params.id, { transaction });
-      if (!payment) {
-        return res.status(404).json({ message: "Payment not found" });
-      }
-
-      // Restore stock for carts
-      const carts = await Cart.findAll({
-        where: { payment_id: payment.id },
-        transaction,
-      });
+    // Simpan data cart yang terkait dengan pembayaran
+    if (carts && Array.isArray(carts)) {
       for (const cart of carts) {
-        const inventory = await Inventory.findByPk(cart.inventory_id, {
-          transaction,
-        });
-        if (inventory) {
-          await inventory.update(
-            { stock: inventory.stock + cart.qty },
-            { transaction }
-          );
+        // Validasi apakah kode valid di tabel Inventory
+        const inventory = await Inventory.findOne({ where: { kode: cart.kode } });
+        if (!inventory) {
+          return res.status(400).json({ message: `Inventori dengan kode ${cart.kode} tidak ditemukan.` });
         }
+
+        await Cart.create({
+          payment_id: newPayment.id,
+          inventory_id: inventory.id, // Menggunakan ID dari inventory yang ditemukan
+          kode: cart.kode, // Simpan kode untuk referensi
+          qty: cart.qty,
+        });
+      }
+    }
+
+    // Hitung total harga setelah data cart disimpan
+    const cartsInPayment = await Cart.findAll({
+      where: { payment_id: newPayment.id },
+      include: [
+        {
+          model: Inventory,
+          as: "Inventory",
+          attributes: ["price"],
+        },
+      ],
+    });
+
+    const totalPrice = cartsInPayment.reduce((sum, cart) => {
+      return sum + cart.qty * (cart.Inventory?.price || 0);
+    }, 0);
+
+    res.status(201).json({
+      message: "Pembayaran berhasil dibuat",
+      payment: {
+        ...newPayment.toJSON(),
+        total_price: totalPrice,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+},
+
+
+  // Endpoint untuk memperbarui pembayaran berdasarkan ID
+  updatePayment: async (req, res) => {
+    try {
+      const payment = await Payment.findByPk(req.params.id);
+      if (!payment) {
+        return res.status(404).json({ message: "Pembayaran tidak ditemukan." });
       }
 
-      // Delete carts and payment
-      await Cart.destroy({ where: { payment_id: payment.id }, transaction });
-      await payment.destroy({ transaction });
+      const { customer_id, employee_id, date } = req.body;
+      payment.customer_id = customer_id || payment.customer_id;
+      payment.employee_id = employee_id || payment.employee_id;
+      payment.date = date || payment.date;
+      await payment.save();
 
-      await transaction.commit();
-      res.json({ message: "Payment deleted" });
+      res.json({ message: "Pembayaran berhasil diperbarui", payment });
     } catch (error) {
-      await transaction.rollback();
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Endpoint untuk menghapus pembayaran berdasarkan ID
+  deletePayment: async (req, res) => {
+    try {
+      const payment = await Payment.findByPk(req.params.id);
+      if (!payment) {
+        return res.status(404).json({ message: "Pembayaran tidak ditemukan." });
+      }
+
+      await payment.destroy();
+      res.json({ message: "Pembayaran berhasil dihapus." });
+    } catch (error) {
       res.status(500).json({ message: error.message });
     }
   },
 };
-
-module.exports = paymentController;

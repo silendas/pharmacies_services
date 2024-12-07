@@ -10,6 +10,9 @@ module.exports = (sequelize) => {
         primaryKey: true,
         autoIncrement: true,
       },
+      kode_struk: {
+        type: DataTypes.STRING,
+      },
       customer_id: {
         type: DataTypes.INTEGER,
         references: {
@@ -52,6 +55,17 @@ module.exports = (sequelize) => {
       updatedAt: 'updated_at',
     }
   );
+
+  // Hook to generate kode_struk
+  Payment.beforeCreate(async (payment, options) => {
+    const latestPayment = await Payment.findOne({
+      order: [['id', 'DESC']],
+    });
+
+    // Generate new kode_struk
+    const nextNumber = latestPayment ? latestPayment.id + 1 : 1;
+    payment.kode_struk = `S-${String(nextNumber).padStart(4, '0')}`;
+  });
 
   Payment.associate = (models) => {
     Payment.belongsTo(models.Customer, { foreignKey: 'customer_id', as: 'Customer' });

@@ -8,6 +8,9 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true
       },
+      kode_struk: {
+        type: Sequelize.STRING,
+      },
       customer_id: {
         type: Sequelize.INTEGER,  // Harus sama dengan tipe data id di customers
         allowNull: false,

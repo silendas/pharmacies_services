@@ -6,11 +6,11 @@ dotenv.config();
 
 const config = {
   db: {
-    database: process.env.DB_DATABASE,
-    username: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST,
-    dialect: 'postgres',
+    database: process.env.POSTGRES_DATABASE, // Nama database
+    username: process.env.POSTGRES_USER, // Username database
+    password: process.env.POSTGRES_PASSWORD, // Password database
+    host: process.env.POSTGRES_HOST,         // Host database
+    dialect: 'postgres',                // Dialek database
   },
   port: process.env.PORT,
 };

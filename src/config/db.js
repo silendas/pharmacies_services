@@ -1,14 +1,14 @@
 'use strict';
 
+const dotenv = require('dotenv');
 const { Sequelize } = require('sequelize');
 const pool = require('./config');
 
+dotenv.config();
+
 const sequelize = new Sequelize(
-  pool.database,
-  pool.user,
-  pool.password,
+  process.env.POSTGRES_URL,
   {
-    host: pool.host,
     dialect: 'postgres',
     dialectOptions: {
       ssl: {

@@ -1,24 +1,24 @@
 'use strict';
 
+const dotenv = require('dotenv');
 const { Sequelize } = require('sequelize');
-const env = process.env.NODE_ENV || 'development';
 const pool = require('../config/config.js');
+
+
+dotenv.config();
 
 // Inisialisasi koneksi database
 const sequelize = new Sequelize(
-  pool.database,
-  pool.user,
-  pool.password,
+  process.env.POSTGRES_URL,
   {
-    host: pool.host,
     dialect: 'postgres',
     dialectOptions: {
       ssl: {
-        require: true, // Gunakan SSL jika penyedia database membutuhkan
-        rejectUnauthorized: false, // Set ke false jika tidak menggunakan sertifikat CA
+        require: true,
+        rejectUnauthorized: false,
       },
     },
-  }
+  },
 );
 
 // Import semua model

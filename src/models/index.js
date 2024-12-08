@@ -8,7 +8,7 @@ const pool = require('../config/config.js');
 const sequelize = new Sequelize(
   pool.database,
   pool.user,
-  pool.db.password,
+  pool.password,
   {
     host: pool.host,
     dialect: 'postgres',

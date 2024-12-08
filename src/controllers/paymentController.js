@@ -120,8 +120,6 @@ module.exports = {
     }
   },
 
-  // Endpoint untuk membuat pembayaran baru
-  // Endpoint untuk membuat pembayaran baru
 createPayment: async (req, res) => {
   try {
     const { customer_id, employee_id, date, carts } = req.body;

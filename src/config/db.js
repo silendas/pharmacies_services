@@ -1,15 +1,16 @@
 'use strict';
 
 const { Sequelize } = require('sequelize');
-const config = require('./config');
+const pool = require('./config');
 
 const sequelize = new Sequelize(
-  config.db.database,
-  config.db.username,
-  config.db.password,
+  pool.database,
+  pool.user,
+  pool.db.password,
   {
-    host: config.db.host,
-    dialect: config.db.dialect,
+    host: pool.host,
+    dialect: 'postgres',
+    port: 5432
   }
 );
 

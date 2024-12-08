@@ -9,16 +9,15 @@ const paymentRoutes = require('./paymentRoutes');
 const cartRoutes = require('./cartRoutes');
 const salaryRoutes = require('./salaryRoutes');
 const inventoryRoutes = require('./inventoryRoutes');
-const auth = require('../middleware/auth');
 
 // Routes untuk setiap tabel
-router.use('/customers', auth, customerRoutes);
-router.use('/employees', auth, employeeRoutes);
-router.use('/users', auth,userRoutes);
-router.use('/roles', auth, roleRoutes);
-router.use('/payments', auth, paymentRoutes);
-router.use('/carts', auth, cartRoutes);
-router.use('/salaries', auth, salaryRoutes);
-router.use('/inventories', auth, inventoryRoutes);
+router.use('/customers', customerRoutes);
+router.use('/employees', employeeRoutes);
+router.use('/users', userRoutes);
+router.use('/roles', roleRoutes);
+router.use('/payments', paymentRoutes);
+router.use('/carts', cartRoutes);
+router.use('/salaries', salaryRoutes);
+router.use('/inventories', inventoryRoutes);
 
 module.exports = router;

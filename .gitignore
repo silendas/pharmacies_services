@@ -1,5 +1,5 @@
-/node_modules
-/migrations
-/seeders
-/config
-/.env
+node_modules
+migrations
+seeders
+config
+.env

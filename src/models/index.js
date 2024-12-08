@@ -2,16 +2,17 @@
 
 const { Sequelize } = require('sequelize');
 const env = process.env.NODE_ENV || 'development';
-const config = require('../config/config.js');
+const pool = require('../config/config.js');
 
 // Inisialisasi koneksi database
 const sequelize = new Sequelize(
-  config.db.database,
-  config.db.username,
-  config.db.password,
+  pool.database,
+  pool.user,
+  pool.db.password,
   {
-    host: config.db.host,
-    dialect: config.db.dialect
+    host: pool.host,
+    dialect: 'postgres',
+    port: 5432
   }
 );
 

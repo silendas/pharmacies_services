@@ -22,7 +22,7 @@ const auth = async (req, res, next) => {
 
 const checkAdmin = async (req, res, next) => {
   try {
-    if (req.user.role !== 1) {
+    if (req.user.role_id !== 1) {
       return res.status(403).json({
         message: 'Akses ditolak. Anda tidak memiliki izin.'
       });

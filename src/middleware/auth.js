@@ -20,4 +20,19 @@ const auth = async (req, res, next) => {
   }
 };
 
-module.exports = auth; 
+const checkAdmin = async (req, res, next) => {
+  try {
+    if (req.user.role_id !== 1) {
+      return res.status(403).json({
+        message: 'Akses ditolak. Anda tidak memiliki izin.'
+      });
+    }
+    next();
+  } catch (error) {
+    res.status(403).json({
+      message: 'Terjadi kesalahan saat verifikasi role'
+    });
+  }
+};
+
+module.exports = { auth, checkAdmin };

@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const auth = require('../middleware/auth');
+const { auth, checkAdmin } = require('../middleware/auth');
 
 // Public routes
 router.post('/login', userController.login);
 
 // Protected routes
-router.use(auth); // Middleware auth untuk semua route di bawah ini
+router.use(auth); 
+router.use(checkAdmin);
 router.get('/users', userController.getAllUsers);
 router.get('/users/:id', userController.getUserById);
 router.post('/users', userController.createUser);

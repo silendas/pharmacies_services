@@ -19,36 +19,6 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Welcome route
-app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Welcome to Our API</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            text-align: center;
-          }
-          h1 {
-            color: #333;
-          }
-          p {
-            color: #666;
-          }
-        </style>
-      </head>
-      <body>
-        <h1>Welcome to Our API</h1>
-        <p>The API is running successfully.</p>
-        <p>Please use /api endpoint to access the API routes.</p>
-      </body>
-    </html>
-  `);
-});
-
 // Routes
 app.use('/api', routes);
 

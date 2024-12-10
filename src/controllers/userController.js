@@ -110,8 +110,7 @@ const userController = {
         message: 'Login berhasil',
         user: {
           id: user.id,
-          username: user.username,
-          role: user.role
+          user: user
         },
         token
       });

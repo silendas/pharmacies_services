@@ -2,8 +2,6 @@
 
 const dotenv = require('dotenv');
 const { Sequelize } = require('sequelize');
-const pool = require('../config/config.js');
-
 
 dotenv.config();
 

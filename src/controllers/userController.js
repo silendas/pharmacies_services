@@ -9,7 +9,7 @@ const userController = {
         include: [
           {
             model: Employee,
-            attributes: ['id', 'name', 'phone', 'address']
+            attributes: ['id', 'name', 'phone']
           },
           {
             model: Role,
@@ -30,7 +30,7 @@ const userController = {
         include: [
           {
             model: Employee,
-            attributes: ['id', 'name', 'phone', 'address']
+            attributes: ['id', 'name', 'phone']
           },
           {
             model: Role,

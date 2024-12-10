@@ -7,13 +7,16 @@ const { auth, checkAdmin } = require('../middleware/auth');
 router.post('/login', userController.login);
 
 // Protected routes
-router.use(auth); 
-router.use(checkAdmin);
-router.get('/users', userController.getAllUsers);
-router.get('/users/:id', userController.getUserById);
-router.post('/users', userController.createUser);
-router.put('/users/:id', userController.updateUser);
-router.delete('/users/:id', userController.deleteUser);
+router.use(auth);
+
+// Admin only routes
+router.get('/users', auth, checkAdmin, userController.getAllUsers);
+router.get('/users/:id', auth, checkAdmin, userController.getUserById);
+router.post('/users', auth, checkAdmin, userController.createUser);
+router.put('/users/:id', auth, checkAdmin, userController.updateUser);
+router.delete('/users/:id', auth, checkAdmin, userController.deleteUser);
+
+// Regular authenticated routes
 router.post('/logout', userController.logout);
 
 module.exports = router;

@@ -34,7 +34,11 @@ module.exports = {
         attributes: {
           include: [
             ["id", "transaction_id"],
-            [sequelize.literal(`CONCAT('S-', LPAD("Payment"."id", 5, '0'))`), "receipt_code"],
+            [
+              sequelize.literal(`CONCAT('S-', LPAD(CAST("Payment"."id" AS VARCHAR), 5, '0'))`),
+              "receipt_code"
+            ]
+            ,
           ],
         },
       });
@@ -94,7 +98,11 @@ module.exports = {
         attributes: {
           include: [
             ["id", "transaction_id"],
-            [sequelize.literal(`CONCAT('S-', LPAD("Payment"."id", 5, '0'))`), "receipt_code"],
+            [
+              sequelize.literal(`CONCAT('S-', LPAD(CAST("Payment"."id" AS VARCHAR), 5, '0'))`),
+              "receipt_code"
+            ]
+            ,
           ],
         },
       });

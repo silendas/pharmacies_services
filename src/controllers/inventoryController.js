@@ -3,7 +3,11 @@ const { Inventory, Employee } = require('../models');
 const inventoryController = {
   getAllInventories: async (req, res) => {
     try {
-      const inventories = await Inventory.findAll();
+      const inventories = await Inventory.findAll({
+        where: {
+          deleted: false
+        }
+      });
       res.json(inventories);
     } catch (error) {
       res.status(500).json({ message: error.message });

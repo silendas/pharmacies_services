@@ -27,7 +27,7 @@ module.exports = {
             attributes: [
               "id",
               "qty",
-              [sequelize.literal("qty * `carts->Inventory`.`price`"), "total_price"],
+              [sequelize.literal('qty * "carts->Inventory"."price"'), "total_price"],
             ],
           },
         ],
@@ -90,7 +90,7 @@ module.exports = {
             attributes: [
               "id",
               "qty",
-              [sequelize.literal("qty * `carts->Inventory`.`price`"), "total_price"],
+              [sequelize.literal('qty * "carts->Inventory"."price"'), "total_price"],
             ],
           },
         ],

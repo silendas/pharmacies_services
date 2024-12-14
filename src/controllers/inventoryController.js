@@ -3,20 +3,7 @@ const { Inventory, Employee } = require('../models');
 const inventoryController = {
   getAllInventories: async (req, res) => {
     try {
-      const inventories = await Inventory.findAll({
-        include: [
-          {
-            model: Employee,
-            as: 'created_by_employee',
-            attributes: ['id', 'name']
-          },
-          {
-            model: Employee,
-            as: 'updated_by_employee',
-            attributes: ['id', 'name']
-          }
-        ]
-      });
+      const inventories = await Inventory.findAll();
       res.json(inventories);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -25,20 +12,7 @@ const inventoryController = {
 
   getInventoryById: async (req, res) => {
     try {
-      const inventory = await Inventory.findByPk(req.params.id, {
-        include: [
-          {
-            model: Employee,
-            as: 'created_by_employee',
-            attributes: ['id', 'name']
-          },
-          {
-            model: Employee,
-            as: 'updated_by_employee',
-            attributes: ['id', 'name']
-          }
-        ]
-      });
+      const inventory = await Inventory.findByPk(req.params.id);
       if (inventory) {
         res.json(inventory);
       } else {

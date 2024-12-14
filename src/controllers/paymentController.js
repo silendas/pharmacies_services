@@ -113,33 +113,57 @@ module.exports = {
       const totalPrice = carts.reduce((sum, cart) => {
         return sum + cart.qty * (cart.Inventory?.price || 0);
       }, 0);
-
-      res.json({ ...payment.toJSON(), total_price: totalPrice });
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  },
-
-  createPayment: async (req, res) => {
-    const t = await sequelize.transaction();
-    
-    try {
-      const { customer_id, employee_id, date, carts } = req.body;
-      
-      // Validate required fields
-      if (!customer_id || !employee_id || !date || !carts) {
-        return res.status(400).json({ 
-          message: "customer_id, employee_id, date, dan carts harus diisi" 
-        });
+        res.json({ ...payment.toJSON(), total_price: totalPrice });
+      } catch (error) {
+        res.status(500).json({ message: error.message });
       }
+    },
+
+    createPayment: async (req, res) => {
+      const t = await sequelize.transaction();
+    
+      try {
+        const { customer_id, employee_id, date, carts } = req.body;
+      
+        // Improved validation with specific error messages
+        if (!customer_id) {
+          return res.status(400).json({ 
+            status: 'error',
+            code: 'MISSING_CUSTOMER_ID',
+            message: "customer_id is required"
+          });
+        }
+
+        if (!employee_id) {
+          return res.status(400).json({ 
+            status: 'error',
+            code: 'MISSING_EMPLOYEE_ID',
+            message: "employee_id is required"
+          });
+        }
+
+        if (!date) {
+          return res.status(400).json({ 
+            status: 'error',
+            code: 'MISSING_DATE',
+            message: "date is required"
+          });
+        }
+
+        if (!carts || !Array.isArray(carts) || carts.length === 0) {
+          return res.status(400).json({ 
+            status: 'error',
+            code: 'INVALID_CART_DATA',
+            message: "carts must be a non-empty array"
+          });
+        }
+
+        const newPayment = await Payment.create({
+          customer_id,
+          employee_id,
+          date,
+        }, { transaction: t });
   
-      const newPayment = await Payment.create({
-        customer_id,
-        employee_id,
-        date,
-      }, { transaction: t });
-  
-      if (carts && Array.isArray(carts)) {
         for (const cart of carts) {
           const inventory = await Inventory.findOne({ 
             where: { kode: cart.kode },
@@ -148,19 +172,28 @@ module.exports = {
           
           if (!inventory) {
             await t.rollback();
-            return res.status(400).json({ 
-              message: `Inventori dengan kode ${cart.kode} tidak ditemukan.` 
+            return res.status(404).json({ 
+              status: 'error',
+              code: 'INVENTORY_NOT_FOUND',
+              message: `Product with code ${cart.kode} not found`,
+              details: { providedCode: cart.kode }
             });
           }
   
-          // Check stock availability
           if (inventory.stock < cart.qty) {
             await t.rollback();
             return res.status(400).json({
-              message: `Stok tidak mencukupi untuk produk ${inventory.name}`
+              status: 'error',
+              code: 'INSUFFICIENT_STOCK',
+              message: `Insufficient stock for product ${inventory.name}`,
+              details: {
+                productName: inventory.name,
+                requestedQty: cart.qty,
+                availableStock: inventory.stock
+              }
             });
           }
-  
+
           await Cart.create({
             payment_id: newPayment.id,
             inventory_id: inventory.id,
@@ -168,48 +201,55 @@ module.exports = {
             qty: cart.qty,
           }, { transaction: t });
   
-          // Update inventory stock
           await inventory.decrement('stock', { 
             by: cart.qty,
             transaction: t 
           });
         }
-      }
   
-      await t.commit();
+        await t.commit();
   
-      // Get complete payment data with total
-      const completePayment = await Payment.findByPk(newPayment.id, {
-        include: [{
-          model: Cart,
-          as: "carts",
+        const completePayment = await Payment.findByPk(newPayment.id, {
           include: [{
-            model: Inventory,
-            as: "Inventory",
-            attributes: ["price"]
+            model: Cart,
+            as: "carts",
+            include: [{
+              model: Inventory,
+              as: "Inventory",
+              attributes: ["id", "kode", "name", "price", "stock"]
+            }]
           }]
-        }]
-      });
+        });
   
-      const totalPrice = completePayment.carts.reduce((sum, cart) => {
-        return sum + cart.qty * (cart.Inventory?.price || 0);
-      }, 0);
+        const totalPrice = completePayment.carts.reduce((sum, cart) => {
+          return sum + cart.qty * (cart.Inventory?.price || 0);
+        }, 0);
   
-      res.status(201).json({
-        message: "Pembayaran berhasil dibuat",
-        payment: {
-          ...completePayment.toJSON(),
-          total_price: totalPrice,
-        }
-      });
+        res.status(201).json({
+          status: 'success',
+          message: "Payment created successfully",
+          data: {
+            payment: {
+              ...completePayment.toJSON(),
+              total_price: totalPrice,
+            }
+          }
+        });
       
-    } catch (error) {
-      await t.rollback();
-      res.status(500).json({ message: error.message });
-    }
-  },  
-
-
+      } catch (error) {
+        await t.rollback();
+        res.status(500).json({ 
+          status: 'error',
+          code: 'SERVER_ERROR',
+          message: "An error occurred while processing the payment",
+          details: {
+            error: error.message,
+            type: error.name,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+          }
+        });
+      }
+    },  
   // Endpoint untuk memperbarui pembayaran berdasarkan ID
   updatePayment: async (req, res) => {
     try {

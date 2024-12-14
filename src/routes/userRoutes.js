@@ -8,6 +8,7 @@ router.post('/login', userController.login);
 
 // Protected routes
 router.use(auth);
+router.use(checkAdmin);
 // Admin only routes
 router.get('/', userController.getAllUsers);
 router.get('/:id', userController.getUserById);

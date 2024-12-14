@@ -7,7 +7,7 @@ const salaryController = {
         include: [
           {
             model: Employee,
-            attributes: ['id', 'name', 'phone', 'address']
+            attributes: ['id', 'name', 'phone']
           }
         ]
       });
@@ -23,7 +23,7 @@ const salaryController = {
         include: [
           {
             model: Employee,
-            attributes: ['id', 'name', 'phone', 'address']
+            attributes: ['id', 'name', 'phone']
           }
         ]
       });

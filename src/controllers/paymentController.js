@@ -120,60 +120,94 @@ module.exports = {
     }
   },
 
-createPayment: async (req, res) => {
-  try {
-    const { customer_id, employee_id, date, carts } = req.body;
-    const newPayment = await Payment.create({
-      customer_id,
-      employee_id,
-      date,
-    });
-
-    // Simpan data cart yang terkait dengan pembayaran
-    if (carts && Array.isArray(carts)) {
-      for (const cart of carts) {
-        // Validasi apakah kode valid di tabel Inventory
-        const inventory = await Inventory.findOne({ where: { kode: cart.kode } });
-        if (!inventory) {
-          return res.status(400).json({ message: `Inventori dengan kode ${cart.kode} tidak ditemukan.` });
-        }
-
-        await Cart.create({
-          payment_id: newPayment.id,
-          inventory_id: inventory.id, // Menggunakan ID dari inventory yang ditemukan
-          kode: cart.kode, // Simpan kode untuk referensi
-          qty: cart.qty,
+  createPayment: async (req, res) => {
+    const t = await sequelize.transaction();
+    
+    try {
+      const { customer_id, employee_id, date, carts } = req.body;
+      
+      // Validate required fields
+      if (!customer_id || !employee_id || !date || !carts) {
+        return res.status(400).json({ 
+          message: "customer_id, employee_id, date, dan carts harus diisi" 
         });
       }
+  
+      const newPayment = await Payment.create({
+        customer_id,
+        employee_id,
+        date,
+      }, { transaction: t });
+  
+      if (carts && Array.isArray(carts)) {
+        for (const cart of carts) {
+          const inventory = await Inventory.findOne({ 
+            where: { kode: cart.kode },
+            transaction: t
+          });
+          
+          if (!inventory) {
+            await t.rollback();
+            return res.status(400).json({ 
+              message: `Inventori dengan kode ${cart.kode} tidak ditemukan.` 
+            });
+          }
+  
+          // Check stock availability
+          if (inventory.stock < cart.qty) {
+            await t.rollback();
+            return res.status(400).json({
+              message: `Stok tidak mencukupi untuk produk ${inventory.name}`
+            });
+          }
+  
+          await Cart.create({
+            payment_id: newPayment.id,
+            inventory_id: inventory.id,
+            kode: cart.kode,
+            qty: cart.qty,
+          }, { transaction: t });
+  
+          // Update inventory stock
+          await inventory.decrement('stock', { 
+            by: cart.qty,
+            transaction: t 
+          });
+        }
+      }
+  
+      await t.commit();
+  
+      // Get complete payment data with total
+      const completePayment = await Payment.findByPk(newPayment.id, {
+        include: [{
+          model: Cart,
+          as: "carts",
+          include: [{
+            model: Inventory,
+            as: "Inventory",
+            attributes: ["price"]
+          }]
+        }]
+      });
+  
+      const totalPrice = completePayment.carts.reduce((sum, cart) => {
+        return sum + cart.qty * (cart.Inventory?.price || 0);
+      }, 0);
+  
+      res.status(201).json({
+        message: "Pembayaran berhasil dibuat",
+        payment: {
+          ...completePayment.toJSON(),
+          total_price: totalPrice,
+        }
+      });
+      
+    } catch (error) {
+      await t.rollback();
+      res.status(500).json({ message: error.message });
     }
-
-    // Hitung total harga setelah data cart disimpan
-    const cartsInPayment = await Cart.findAll({
-      where: { payment_id: newPayment.id },
-      include: [
-        {
-          model: Inventory,
-          as: "Inventory",
-          attributes: ["price"],
-        },
-      ],
-    });
-
-    const totalPrice = cartsInPayment.reduce((sum, cart) => {
-      return sum + cart.qty * (cart.Inventory?.price || 0);
-    }, 0);
-
-    res.status(201).json({
-      message: "Pembayaran berhasil dibuat",
-      payment: {
-        ...newPayment.toJSON(),
-        total_price: totalPrice,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-},
+  },  
 
 
   // Endpoint untuk memperbarui pembayaran berdasarkan ID

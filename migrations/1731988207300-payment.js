@@ -13,7 +13,7 @@ module.exports = {
       },
       customer_id: {
         type: Sequelize.INTEGER,  // Harus sama dengan tipe data id di customers
-        allowNull: false,
+        allowNull: true,
         references: {
           model: 'customers',  // Nama tabel yang direferensikan
           key: 'id'            // Kolom yang dijadikan referensi

@@ -54,7 +54,7 @@ const inventoryController = {
     try {
       const inventory = await Inventory.findByPk(req.params.id);
       if (inventory) {
-        await inventory.destroy();
+        await inventory.update({deleted: true});
         res.json({ message: 'Inventory deleted' });
       } else {
         res.status(404).json({ message: 'Inventory not found' });

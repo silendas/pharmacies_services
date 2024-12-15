@@ -127,15 +127,6 @@ module.exports = {
       try {
         const { customer_id, employee_id, date, carts } = req.body;
       
-        // Improved validation with specific error messages
-        if (!customer_id) {
-          return res.status(400).json({ 
-            status: 'error',
-            code: 'MISSING_CUSTOMER_ID',
-            message: "customer_id is required"
-          });
-        }
-
         if (!employee_id) {
           return res.status(400).json({ 
             status: 'error',

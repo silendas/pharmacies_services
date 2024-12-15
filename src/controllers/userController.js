@@ -108,10 +108,7 @@ const userController = {
       
       res.json({
         message: 'Login berhasil',
-        user: {
-          id: user.id,
-          user: user
-        },
+        user: user,
         token
       });
     } catch (error) {

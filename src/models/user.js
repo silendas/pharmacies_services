@@ -56,9 +56,14 @@ module.exports = (sequelize) => {
   });
 
   // Method untuk generate token
-  User.prototype.generateToken = function() {
+  User.prototype.generateToken = function () {
     return jwt.sign(
-      { id: this.id, email: this.email },
+      { 
+        id: this.id,
+        employee_id: this.employee_id,
+        role_id: this.role_id,
+        username: this.username
+      },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );

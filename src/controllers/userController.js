@@ -1,6 +1,5 @@
 const { User, Employee, Role } = require('../models');
 const bcrypt = require('bcryptjs');
-const role = require('../models/role');
 
 const userController = {
   getAllUsers: async (req, res) => {
